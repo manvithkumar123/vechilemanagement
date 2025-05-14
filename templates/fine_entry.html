@@ -138,13 +138,17 @@
                                     <label for="location" class="form-label">Location</label>
                                     <input type="text" class="form-control" id="location" name="location" required>
                                 </div>
-                                
+                                <div class="buttons_container">
+                                    <button style="border: none;background-color: #795eff;color: white;">Private</button>
+                                    <button style="border: none;background-color: #795eff;color: white;">Government</button>
+                                </div>
                                 <div class="mb-3">
-                                    <label for="proof_upload" class="form-label">Upload Proof Image</label>
+                                    <label for="proof_upload" class="form-label" style="margin-top: 10px;">Upload Proof Image</label>
                                     <input type="file" class="form-control" id="proof_upload" accept="image/*">
                                     <input type="hidden" id="proof_image" name="proof_image">
                                     <div class="form-text">Upload an image as proof of the violation</div>
                                 </div>
+
                                 
                                 <div id="proofPreviewContainer" class="mb-3 d-none">
                                     <label class="form-label">Proof Image Preview</label>

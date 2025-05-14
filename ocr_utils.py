@@ -68,31 +68,36 @@ def enhance_image_for_ocr(image_path):
     try:
         # Open the image
         img = Image.open(image_path)
-        
+
+        # Auto-invert if background is light and text is dark
+        grayscale = img.convert('L')
+        brightness = grayscale.resize((1, 1)).getpixel((0, 0))
+        if brightness > 127:
+            img = ImageOps.invert(grayscale)
+        else:
+            img = grayscale
+
         # Resize if needed
         if img.width > 1000 or img.height > 1000:
             img.thumbnail((1000, 1000), Image.Resampling.LANCZOS)
-        
-        # Convert to grayscale
-        img = img.convert('L')
-        
+
         # Increase contrast
         enhancer = ImageEnhance.Contrast(img)
         img = enhancer.enhance(2.0)
-        
+
         # Apply sharpening
         img = img.filter(ImageFilter.SHARPEN)
-        
+
         # Apply thresholding to make it black and white
         threshold = 150  
         # We need to use a different approach for thresholding that doesn't involve comparison
         lut = [0] * threshold + [255] * (256 - threshold)
         img = img.point(lut)
-        
+
         # Save to a temporary file
         enhanced_path = tempfile.mktemp(suffix='.png')
         img.save(enhanced_path)
-        
+
         return enhanced_path
     
     except Exception as e:

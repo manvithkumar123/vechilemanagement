@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/css/nav.css">
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-body mb-4">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('home') }}">
-                <i class="fas fa-car-alt me-2"></i>Vehicle Management
+                <a href="{{ url_for('home') }}" style="color: #00CED1; text-decoration: none;"><i class="fa-solid fa-car" style="color: #00ced1;"></i> VECHILE MANAGEMENT SYSTEM </a>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,7 +26,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                        <a class="nav-link" href="{{ url_for('home') }}" style="margin-left: 10px; color: #00CED1;">Home</a>
                     </li>
                     {% if session.get('user_id') %}
                         {% if session.get('is_employee') %}

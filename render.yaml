@@ -3,11 +3,10 @@ services:
     name: vehicle-intelligence
     runtime: python
     buildCommand: |
-      apt-get update
-      apt-get install -y tesseract-ocr
-      tesseract --version  # This logs the Tesseract version to confirm installation
-      pip install -r requirements.txt
-    startCommand: gunicorn main:app
+      apt-get update && apt-get install -y tesseract-ocr  # Ensure Tesseract is installed
+      tesseract --version  # Verify the installation
+      pip install -r requirements.txt  # Install Python dependencies
+    startCommand: gunicorn main:app  # Or whatever your entry point is
     envVars:
       - key: PORT
         value: 10000

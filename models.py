@@ -8,8 +8,17 @@ class User(db.Model):
     is_employee = db.Column(db.Boolean, default=False)
     password_hash = db.Column(db.String(256), nullable=True)  # Only employees have passwords
     
-    # Relationship with fines
-    fines = db.relationship('Fine', backref='user', lazy=True)
+    # Relationship with fines - specify foreign_keys to avoid ambiguity
+    fines = db.relationship('Fine', 
+                           foreign_keys='Fine.user_id',
+                           backref='user', 
+                           lazy=True)
+    
+    # Separate relationship for fines created by this user (for employees)
+    fines_created = db.relationship('Fine',
+                                  foreign_keys='Fine.created_by',
+                                  backref='creator',
+                                  lazy=True)
     
     def __repr__(self):
         return f'<User {self.username}>'

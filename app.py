@@ -34,5 +34,7 @@ db.init_app(app)
 with app.app_context():
     # Import the models here so their tables will be created
     import models  # noqa: F401
-
+    
+    # Recreate all tables
+    db.drop_all()
     db.create_all()

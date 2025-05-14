@@ -1,20 +1,88 @@
 /* Custom styling for the vehicle management system */
 
+:root {
+    /* Enhanced color variables for light theme */
+    --light-primary: #0d6efd;
+    --light-secondary: #6c757d;
+    --light-success: #198754;
+    --light-danger: #dc3545;
+    --light-warning: #ffc107;
+    --light-info: #0dcaf0;
+    --light-bg: #f8f9fa;
+    --light-card-bg: #ffffff;
+    --light-text: #212529;
+    --light-border: #dee2e6;
+    
+    /* Enhanced color variables for dark theme */
+    --dark-primary: #3d8bfd;
+    --dark-secondary: #6c757d;
+    --dark-success: #26b56e;
+    --dark-danger: #e05260;
+    --dark-warning: #ffca2c;
+    --dark-info: #39d1ff;
+    --dark-bg: #212529;
+    --dark-card-bg: #2c3034;
+    --dark-text: #f8f9fa;
+    --dark-border: #495057;
+}
+
 /* State-based color coding for vehicle plates */
 .state-TS {
-    background-color: var(--bs-info) !important;
+    background-color: #3a86ff !important;
+    color: white !important;
 }
 
 .state-AP {
-    background-color: var(--bs-success) !important;
+    background-color: #8ac926 !important;
+    color: white !important;
+}
+
+.state-TN {
+    background-color: #ffbe0b !important;
+    color: black !important;
+}
+
+.state-KA {
+    background-color: #ff5400 !important;
+    color: white !important;
+}
+
+.state-MH {
+    background-color: #9d4edd !important;
+    color: white !important;
+}
+
+.state-DL {
+    background-color: #e76f51 !important;
+    color: white !important;
+}
+
+/* Badge styling for better visibility */
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35em 0.65em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 /* Camera container styling */
 #cameraContainer, #canvasContainer {
     border: 1px solid var(--bs-border-color);
-    border-radius: 0.25rem;
-    padding: 10px;
-    background-color: var(--bs-dark-bg-subtle);
+    border-radius: 0.5rem;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="light"] #cameraContainer, 
+[data-bs-theme="light"] #canvasContainer {
+    background-color: var(--light-card-bg);
+    border-color: var(--light-border);
+}
+
+[data-bs-theme="dark"] #cameraContainer, 
+[data-bs-theme="dark"] #canvasContainer {
+    background-color: var(--dark-card-bg);
+    border-color: var(--dark-border);
 }
 
 /* Traffic sign styling */
@@ -23,44 +91,100 @@
     height: 100px;
     margin: 0 auto;
     display: block;
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.2));
 }
 
-/* Custom dark theme adjustments */
+/* Custom theme adjustments */
+[data-bs-theme="light"] {
+    --bs-body-bg: var(--light-bg);
+    --bs-body-color: var(--light-text);
+}
+
+[data-bs-theme="light"] .card {
+    background-color: var(--light-card-bg);
+    border-color: var(--light-border);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="light"] .btn-primary {
+    background-color: var(--light-primary);
+}
+
+[data-bs-theme="light"] .btn-success {
+    background-color: var(--light-success);
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--dark-bg);
+    --bs-body-color: var(--dark-text);
+}
+
 [data-bs-theme="dark"] .card {
-    background-color: var(--bs-dark-bg-subtle);
+    background-color: var(--dark-card-bg);
+    border-color: var(--dark-border);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .modal-content {
+    background-color: var(--dark-card-bg);
+    border-color: var(--dark-border);
+}
+
+[data-bs-theme="dark"] .btn-primary {
+    background-color: var(--dark-primary);
+}
+
+[data-bs-theme="dark"] .btn-success {
+    background-color: var(--dark-success);
 }
 
 [data-bs-theme="dark"] .table {
-    color: var(--bs-body-color);
+    color: var(--dark-text);
 }
 
 /* Fine detail cards */
 .fine-detail-card {
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+    overflow: hidden;
 }
 
 .fine-detail-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Custom backgrounds for different states */
 .state-bg {
     display: inline-block;
-    padding: 0.25rem 0.5rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 0.25rem;
-    font-weight: bold;
+    font-weight: 600;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 /* Plate number display */
 .plate-display {
     display: inline-block;
     padding: 0.5rem 1rem;
-    background-color: var(--bs-dark);
-    color: var(--bs-light);
     border-radius: 0.25rem;
-    font-family: monospace;
+    font-family: 'Courier New', monospace;
     letter-spacing: 2px;
     font-weight: bold;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="light"] .plate-display {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #222;
+}
+
+[data-bs-theme="dark"] .plate-display {
+    background-color: #f8f9fa;
+    color: #212529;
+    border: 1px solid #adb5bd;
 }
 
 /* OCR loading indicator */
@@ -78,4 +202,73 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Additional styling for navbar */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="light"] .navbar {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef;
+}
+
+[data-bs-theme="dark"] .navbar {
+    background-color: #212529 !important;
+    border-bottom: 1px solid #343a40;
+}
+
+/* Improve tables */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+[data-bs-theme="light"] .table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Improve buttons */
+.btn {
+    border-radius: 0.35rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+/* Improve form controls */
+.form-control {
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-width: 1px;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] .form-control {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #f8f9fa;
+}
+
+[data-bs-theme="dark"] .form-control:focus {
+    background-color: #2c3034;
+    border-color: #86b7fe;
 }

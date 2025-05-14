@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title mb-3">Welcome, {{ user.username }}</h2>
+                    <p class="card-text">This is your vehicle management dashboard. Here you can view all your vehicles and fines.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Summary -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-car fa-3x mb-3 text-primary"></i>
+                    <h3>{{ vehicles|length }}</h3>
+                    <p class="text-muted">Registered Vehicles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+                    <h3>{{ fines|length }}</h3>
+                    <p class="text-muted">Total Fines</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-money-bill-wave fa-3x mb-3 text-danger"></i>
+                    <h3>₹{{ fines|sum(attribute='amount')|int }}</h3>
+                    <p class="text-muted">Total Amount Due</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vehicles Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0"><i class="fas fa-car me-2"></i>Your Vehicles</h4>
+                </div>
+                <div class="card-body">
+                    {% if vehicles %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Plate Number</th>
+                                        <th>State</th>
+                                        <th>Fines</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vehicle in vehicles %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-dark p-2">{{ vehicle.plate_number }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if vehicle.state == 'Telangana' %}bg-info
+                                                    {% elif vehicle.state == 'Andhra Pradesh' %}bg-success
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ vehicle.state }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{ vehicle.fines|length }} fines
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> You don't have any registered vehicles yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Fines Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Recent Fines</h4>
+                </div>
+                <div class="card-body">
+                    {% if fines %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Vehicle</th>
+                                        <th>Reason</th>
+                                        <th>Location</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fine in fines[:5] %}
+                                        <tr>
+                                            <td>{{ fine.date.strftime('%d-%m-%Y') }}</td>
+                                            <td>
+                                                <span class="badge bg-dark">{{ fine.vehicle.plate_number }}</span>
+                                            </td>
+                                            <td>{{ fine.reason }}</td>
+                                            <td>{{ fine.location }}</td>
+                                            <td>₹{{ fine.amount|int }}</td>
+                                            <td>
+                                                {% if fine.paid %}
+                                                    <span class="badge bg-success">Paid</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Unpaid</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if fines|length > 5 %}
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('view_fines') }}" class="btn btn-outline-primary">View All Fines</a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i> You don't have any fines. Keep following traffic rules!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

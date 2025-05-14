@@ -1,0 +1,379 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Fine Records</h3>
+                </div>
+                <div class="card-body">
+                    {% if is_employee %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Showing all fine records in the system.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Showing all your fine records.
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by plate number, reason, or location...">
+                    </div>
+                    
+                    {% if fines %}
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="finesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Vehicle</th>
+                                        <th>State</th>
+                                        <th>Reason</th>
+                                        <th>Location</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fine in fines %}
+                                        <tr class="fine-row" data-fine-id="{{ fine.id }}">
+                                            <td>{{ fine.date.strftime('%d-%m-%Y') }}</td>
+                                            <td>
+                                                <span class="badge bg-dark">{{ fine.vehicle.plate_number }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if fine.vehicle.state == 'Telangana' %}bg-info
+                                                    {% elif fine.vehicle.state == 'Andhra Pradesh' %}bg-success
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ fine.vehicle.state }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="#" class="view-fine-details" data-bs-toggle="modal" data-bs-target="#fineDetailsModal" 
+                                                   data-fine-id="{{ fine.id }}" 
+                                                   data-fine-reason="{{ fine.reason }}"
+                                                   data-fine-amount="{{ fine.amount|int }}"
+                                                   data-fine-location="{{ fine.location }}"
+                                                   data-fine-date="{{ fine.date.strftime('%d-%m-%Y') }}"
+                                                   data-fine-proof="{{ fine.proof_image or '' }}">
+                                                    {{ fine.reason }}
+                                                </a>
+                                            </td>
+                                            <td>{{ fine.location }}</td>
+                                            <td>₹{{ fine.amount|int }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge payment-status {% if fine.paid %}bg-success{% else %}bg-danger{% endif %} me-2">
+                                                        {% if fine.paid %}Paid{% else %}Unpaid{% endif %}
+                                                    </span>
+                                                    <button class="btn btn-sm btn-outline-primary toggle-payment-btn" 
+                                                            data-fine-id="{{ fine.id }}"
+                                                            data-current-status="{{ 'paid' if fine.paid else 'unpaid' }}">
+                                                        {% if fine.paid %}
+                                                            <i class="fas fa-times-circle"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-check-circle"></i> Pay
+                                                        {% endif %}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i> No fines found. Keep following traffic rules!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Section -->
+    {% if fines %}
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Fine Summary</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h5>Total Fines</h5>
+                                    <h3 class="text-primary">{{ fines|length }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h5>Total Amount</h5>
+                                    <h3 class="text-danger">₹{{ fines|sum(attribute='amount')|int }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h5>Paid Fines</h5>
+                                    <h3 class="text-success">{{ fines|selectattr('paid', 'eq', true)|list|length }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border rounded">
+                                    <h5>Unpaid Fines</h5>
+                                    <h3 class="text-warning">{{ fines|selectattr('paid', 'eq', false)|list|length }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Common Violations</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% set reasons = {} %}
+                            {% for fine in fines %}
+                                {% if fine.reason in reasons %}
+                                    {% set _ = reasons.update({fine.reason: reasons[fine.reason] + 1}) %}
+                                {% else %}
+                                    {% set _ = reasons.update({fine.reason: 1}) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% for reason, count in reasons|dictsort(by='value', reverse=true) %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ reason }}
+                                    <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+<!-- Fine Details Modal -->
+<div class="modal fade" id="fineDetailsModal" tabindex="-1" aria-labelledby="fineDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="fineDetailsModalLabel">Fine Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Violation Details</h5>
+                        <dl class="row">
+                            <dt class="col-sm-4">Reason:</dt>
+                            <dd class="col-sm-8" id="modalReason"></dd>
+                            
+                            <dt class="col-sm-4">Amount:</dt>
+                            <dd class="col-sm-8" id="modalAmount"></dd>
+                            
+                            <dt class="col-sm-4">Location:</dt>
+                            <dd class="col-sm-8" id="modalLocation"></dd>
+                            
+                            <dt class="col-sm-4">Date:</dt>
+                            <dd class="col-sm-8" id="modalDate"></dd>
+                            
+                            <dt class="col-sm-4">Status:</dt>
+                            <dd class="col-sm-8" id="modalStatus"></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Proof Image</h5>
+                        <div id="proofImageContainer" class="text-center">
+                            <img id="modalProofImage" class="img-fluid rounded mt-2" style="max-height: 200px;" alt="No proof image available">
+                            <p id="noProofMessage" class="text-muted mt-2 d-none">No proof image available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="modalPayButton">
+                    <i class="fas fa-check-circle me-2"></i>Mark as Paid
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Simple search functionality for the fines table
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('finesTable');
+        
+        if (searchInput && table) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+                
+                for (let i = 0; i < rows.length; i++) {
+                    const rowText = rows[i].textContent.toLowerCase();
+                    if (rowText.includes(searchTerm)) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            });
+        }
+        
+        // Fine details modal functionality
+        const fineDetailsLinks = document.querySelectorAll('.view-fine-details');
+        const modalReason = document.getElementById('modalReason');
+        const modalAmount = document.getElementById('modalAmount');
+        const modalLocation = document.getElementById('modalLocation');
+        const modalDate = document.getElementById('modalDate');
+        const modalStatus = document.getElementById('modalStatus');
+        const modalProofImage = document.getElementById('modalProofImage');
+        const noProofMessage = document.getElementById('noProofMessage');
+        const modalPayButton = document.getElementById('modalPayButton');
+        
+        let currentFineId = null;
+        
+        fineDetailsLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Get fine details from data attributes
+                const fineId = this.getAttribute('data-fine-id');
+                const reason = this.getAttribute('data-fine-reason');
+                const amount = this.getAttribute('data-fine-amount');
+                const location = this.getAttribute('data-fine-location');
+                const date = this.getAttribute('data-fine-date');
+                const proofImage = this.getAttribute('data-fine-proof');
+                const row = document.querySelector(`.fine-row[data-fine-id="${fineId}"]`);
+                const status = row.querySelector('.payment-status').textContent.trim();
+                
+                // Set the current fine ID
+                currentFineId = fineId;
+                
+                // Update modal content
+                modalReason.textContent = reason;
+                modalAmount.textContent = `₹${amount}`;
+                modalLocation.textContent = location;
+                modalDate.textContent = date;
+                modalStatus.textContent = status;
+                
+                // Update modal pay button
+                if (status === 'Paid') {
+                    modalPayButton.innerHTML = '<i class="fas fa-times-circle me-2"></i>Mark as Unpaid';
+                    modalPayButton.classList.remove('btn-success');
+                    modalPayButton.classList.add('btn-danger');
+                } else {
+                    modalPayButton.innerHTML = '<i class="fas fa-check-circle me-2"></i>Mark as Paid';
+                    modalPayButton.classList.remove('btn-danger');
+                    modalPayButton.classList.add('btn-success');
+                }
+                
+                // Display proof image if available
+                if (proofImage && proofImage !== '') {
+                    modalProofImage.src = proofImage;
+                    modalProofImage.classList.remove('d-none');
+                    noProofMessage.classList.add('d-none');
+                } else {
+                    modalProofImage.classList.add('d-none');
+                    noProofMessage.classList.remove('d-none');
+                }
+            });
+        });
+        
+        // Toggle payment status functionality
+        const togglePaymentButtons = document.querySelectorAll('.toggle-payment-btn');
+        
+        function togglePayment(fineId) {
+            fetch(`/toggle_payment/${fineId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the UI to reflect the new payment status
+                    const row = document.querySelector(`.fine-row[data-fine-id="${fineId}"]`);
+                    const statusBadge = row.querySelector('.payment-status');
+                    const toggleButton = row.querySelector('.toggle-payment-btn');
+                    
+                    if (data.paid) {
+                        statusBadge.textContent = 'Paid';
+                        statusBadge.classList.remove('bg-danger');
+                        statusBadge.classList.add('bg-success');
+                        toggleButton.innerHTML = '<i class="fas fa-times-circle"></i>';
+                        toggleButton.setAttribute('data-current-status', 'paid');
+                        
+                        // Show success alert
+                        alert('Payment successful! The fine has been marked as paid.');
+                    } else {
+                        statusBadge.textContent = 'Unpaid';
+                        statusBadge.classList.remove('bg-success');
+                        statusBadge.classList.add('bg-danger');
+                        toggleButton.innerHTML = '<i class="fas fa-check-circle"></i> Pay';
+                        toggleButton.setAttribute('data-current-status', 'unpaid');
+                    }
+                    
+                    // If modal is open, update status there as well
+                    if (currentFineId === fineId) {
+                        modalStatus.textContent = data.paid ? 'Paid' : 'Unpaid';
+                        
+                        if (data.paid) {
+                            modalPayButton.innerHTML = '<i class="fas fa-times-circle me-2"></i>Mark as Unpaid';
+                            modalPayButton.classList.remove('btn-success');
+                            modalPayButton.classList.add('btn-danger');
+                        } else {
+                            modalPayButton.innerHTML = '<i class="fas fa-check-circle me-2"></i>Mark as Paid';
+                            modalPayButton.classList.remove('btn-danger');
+                            modalPayButton.classList.add('btn-success');
+                        }
+                    }
+                } else {
+                    // Show error
+                    alert('Error: ' + (data.error || 'Failed to update payment status.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling payment:', error);
+                alert('An error occurred while updating the payment status.');
+            });
+        }
+        
+        togglePaymentButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const fineId = this.getAttribute('data-fine-id');
+                togglePayment(fineId);
+            });
+        });
+        
+        // Modal pay button functionality
+        if (modalPayButton) {
+            modalPayButton.addEventListener('click', function() {
+                if (currentFineId) {
+                    togglePayment(currentFineId);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

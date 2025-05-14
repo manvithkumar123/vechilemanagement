@@ -1,0 +1,226 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Enter New Fine</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-pills nav-justified mb-4" id="fineEntryTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="scan-tab" data-bs-toggle="pill" data-bs-target="#scan-entry" type="button" role="tab" aria-controls="scan-entry" aria-selected="true">
+                                <i class="fas fa-camera me-2"></i>Scan Number Plate
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="manual-tab" data-bs-toggle="pill" data-bs-target="#manual-entry" type="button" role="tab" aria-controls="manual-entry" aria-selected="false">
+                                <i class="fas fa-keyboard me-2"></i>Manual Entry
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="fineEntryTabContent">
+                        <!-- Scan Number Plate Tab -->
+                        <div class="tab-pane fade show active" id="scan-entry" role="tabpanel" aria-labelledby="scan-tab">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> 
+                                Take a photo or upload an image of the vehicle's number plate for automatic recognition.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="imageUpload" class="form-label">Upload Image</label>
+                                <input class="form-control" type="file" id="imageUpload" accept="image/*">
+                            </div>
+
+                            <div class="text-center my-4">
+                                <button id="takePhoto" class="btn btn-secondary me-2">
+                                    <i class="fas fa-camera me-2"></i>Take Photo
+                                </button>
+                                <button id="processImage" class="btn btn-primary" disabled>
+                                    <i class="fas fa-cog me-2"></i>Process Image
+                                </button>
+                            </div>
+                            
+                            <!-- Video preview for camera -->
+                            <div id="cameraContainer" class="d-none mb-4">
+                                <video id="video" class="w-100 rounded" style="max-height: 300px;"></video>
+                                <div class="text-center mt-2">
+                                    <button id="captureBtn" class="btn btn-primary">
+                                        <i class="fas fa-camera me-2"></i>Capture
+                                    </button>
+                                    <button id="cancelCaptureBtn" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Canvas for captured image -->
+                            <div id="canvasContainer" class="d-none mb-4">
+                                <canvas id="canvas" class="w-100 rounded" style="max-height: 300px;"></canvas>
+                                <div class="text-center mt-2">
+                                    <button id="recaptureBtn" class="btn btn-outline-secondary">
+                                        <i class="fas fa-redo me-2"></i>Recapture
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- OCR Result Display -->
+                            <div id="ocrResult" class="d-none mb-4">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">OCR Result</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p class="mb-1">Plate Number:</p>
+                                                <h4 id="detectedPlate" class="mb-3">-</h4>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p class="mb-1">State:</p>
+                                                <h4 id="detectedState" class="mb-0">-</h4>
+                                            </div>
+                                        </div>
+                                        <div class="text-center mt-3">
+                                            <button id="useOcrResult" class="btn btn-success">
+                                                <i class="fas fa-check me-2"></i>Use This Result
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="ocrError" class="d-none mb-4">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <span id="errorMessage">Failed to detect license plate. Please try again or use manual entry.</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Manual Entry Tab -->
+                        <div class="tab-pane fade" id="manual-entry" role="tabpanel" aria-labelledby="manual-tab">
+                            <form id="fineForm" method="POST" action="{{ url_for('new_fine') }}">
+                                <div class="mb-3">
+                                    <label for="plate_number" class="form-label">Vehicle Plate Number</label>
+                                    <input type="text" class="form-control" id="plate_number" name="plate_number" required>
+                                    <div class="form-text">Enter the vehicle registration number</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="reason" class="form-label">Reason for Fine</label>
+                                    <select class="form-select" id="reason" name="reason" required>
+                                        <option value="" selected disabled>Select violation type</option>
+                                        <option value="Speeding">Speeding</option>
+                                        <option value="Red Light Jumping">Red Light Jumping</option>
+                                        <option value="No Parking">No Parking</option>
+                                        <option value="Drunk Driving">Drunk Driving</option>
+                                        <option value="No Helmet">No Helmet</option>
+                                        <option value="Using Mobile Phone">Using Mobile Phone</option>
+                                        <option value="Wrong Side Driving">Wrong Side Driving</option>
+                                        <option value="No Seatbelt">No Seatbelt</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Fine Amount (₹)</label>
+                                    <input type="number" class="form-control" id="amount" name="amount" min="100" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="location" class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="location" name="location" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="proof_upload" class="form-label">Upload Proof Image</label>
+                                    <input type="file" class="form-control" id="proof_upload" accept="image/*">
+                                    <input type="hidden" id="proof_image" name="proof_image">
+                                    <div class="form-text">Upload an image as proof of the violation</div>
+                                </div>
+                                
+                                <div id="proofPreviewContainer" class="mb-3 d-none">
+                                    <label class="form-label">Proof Image Preview</label>
+                                    <div class="text-center">
+                                        <img id="proofPreview" class="img-fluid rounded" style="max-height: 200px;" alt="Proof image preview">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Submit Fine
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/ocr.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Proof image upload handling
+        const proofUpload = document.getElementById('proof_upload');
+        const proofImage = document.getElementById('proof_image');
+        const proofPreview = document.getElementById('proofPreview');
+        const proofPreviewContainer = document.getElementById('proofPreviewContainer');
+        
+        if (proofUpload && proofImage && proofPreview && proofPreviewContainer) {
+            proofUpload.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        // Store the base64 data in the hidden input
+                        proofImage.value = event.target.result;
+                        
+                        // Show preview
+                        proofPreview.src = event.target.result;
+                        proofPreviewContainer.classList.remove('d-none');
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Connect OCR captured image to proof image if needed
+        const useOcrResultBtn = document.getElementById('useOcrResult');
+        
+        if (useOcrResultBtn && canvas) {
+            // Add functionality to also use the captured image as proof
+            const originalUseOcr = useOcrResultBtn.onclick;
+            
+            useOcrResultBtn.onclick = function() {
+                // Call the original OCR handler
+                if (originalUseOcr) {
+                    originalUseOcr.call(this);
+                }
+                
+                // Also use the captured image as proof if no proof is already uploaded
+                if (canvas && (!proofImage.value || proofImage.value === '')) {
+                    const capturedImageData = canvas.toDataURL('image/jpeg');
+                    proofImage.value = capturedImageData;
+                    
+                    // Show preview
+                    if (proofPreview && proofPreviewContainer) {
+                        proofPreview.src = capturedImageData;
+                        proofPreviewContainer.classList.remove('d-none');
+                    }
+                }
+            };
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+/* Custom styling for the vehicle management system */
+
+/* State-based color coding for vehicle plates */
+.state-TS {
+    background-color: var(--bs-info) !important;
+}
+
+.state-AP {
+    background-color: var(--bs-success) !important;
+}
+
+/* Camera container styling */
+#cameraContainer, #canvasContainer {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.25rem;
+    padding: 10px;
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+/* Traffic sign styling */
+.traffic-sign {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: block;
+}
+
+/* Custom dark theme adjustments */
+[data-bs-theme="dark"] .card {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+[data-bs-theme="dark"] .table {
+    color: var(--bs-body-color);
+}
+
+/* Fine detail cards */
+.fine-detail-card {
+    transition: transform 0.3s ease;
+}
+
+.fine-detail-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Custom backgrounds for different states */
+.state-bg {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: bold;
+}
+
+/* Plate number display */
+.plate-display {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    border-radius: 0.25rem;
+    font-family: monospace;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+/* OCR loading indicator */
+.ocr-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--bs-primary);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

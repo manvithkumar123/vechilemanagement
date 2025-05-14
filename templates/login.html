@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="my-2">Login</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-pills nav-justified mb-4" id="loginTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="user-tab" data-bs-toggle="pill" data-bs-target="#user-login" type="button" role="tab" aria-controls="user-login" aria-selected="true">
+                                <i class="fas fa-user me-2"></i>User Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="employee-tab" data-bs-toggle="pill" data-bs-target="#employee-login" type="button" role="tab" aria-controls="employee-login" aria-selected="false">
+                                <i class="fas fa-user-tie me-2"></i>Employee Login
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="loginTabContent">
+                        <!-- User Login -->
+                        <div class="tab-pane fade show active" id="user-login" role="tabpanel" aria-labelledby="user-tab">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> As a user, you can login with just your username to view your fines.
+                            </div>
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <input type="hidden" name="login_type" value="user">
+                                <div class="mb-3">
+                                    <label for="user-username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="user-username" name="username" required>
+                                    <div class="form-text">Enter your username or vehicle number to view your fines.</div>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">Login as User</button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Employee Login -->
+                        <div class="tab-pane fade" id="employee-login" role="tabpanel" aria-labelledby="employee-tab">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> Employee login requires both username and password.
+                            </div>
+                            <form method="POST" action="{{ url_for('login') }}">
+                                <input type="hidden" name="login_type" value="employee">
+                                <div class="mb-3">
+                                    <label for="employee-username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="employee-username" name="username" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="employee-password" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="employee-password" name="password" required>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">Login as Employee</button>
+                                </div>
+                                <div class="mt-2 text-center">
+                                    <small class="text-muted">For demo: Username "manager", Password "123456"</small>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

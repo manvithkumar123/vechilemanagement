@@ -1,0 +1,278 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-md-12 text-center">
+            <h1 class="display-4 mb-4">Vehicle Management System</h1>
+            <p class="lead">Monitor vehicles, enforce traffic rules, and manage fines using advanced OCR technology.</p>
+            <div class="mt-4">
+                <a href="{{ url_for('login') }}" class="btn btn-primary me-2">Login</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Traffic Rules Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Traffic Rules & Regulations</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <p class="lead">Following traffic rules is essential for road safety. Here are some important traffic signs and rules to remember:</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Traffic Signs -->
+    <div class="row mb-5">
+        <h3 class="text-center mb-4">Important Traffic Signs</h3>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Stop Sign</h5>
+                </div>
+                <div class="card-body text-center">
+                    <svg class="traffic-sign mb-3" width="100" height="100" viewBox="0 0 100 100">
+                        <polygon points="50,5 95,50 50,95 5,50" fill="#FF0000" />
+                        <text x="50" y="65" font-size="24" text-anchor="middle" fill="white">STOP</text>
+                    </svg>
+                    <p>Come to a complete stop and proceed only when it's safe.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Yield Sign</h5>
+                </div>
+                <div class="card-body text-center">
+                    <svg class="traffic-sign mb-3" width="100" height="100" viewBox="0 0 100 100">
+                        <polygon points="50,5 95,95 5,95" fill="#FFCC00" />
+                        <text x="50" y="75" font-size="16" text-anchor="middle" fill="black">YIELD</text>
+                    </svg>
+                    <p>Slow down and yield to traffic that has the right-of-way.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Speed Limit</h5>
+                </div>
+                <div class="card-body text-center">
+                    <svg class="traffic-sign mb-3" width="100" height="100" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="white" stroke="red" stroke-width="5" />
+                        <text x="50" y="65" font-size="28" text-anchor="middle" fill="black">50</text>
+                    </svg>
+                    <p>Drive within the posted speed limit for safety.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">No Entry</h5>
+                </div>
+                <div class="card-body text-center">
+                    <svg class="traffic-sign mb-3" width="100" height="100" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="white" stroke="red" stroke-width="5" />
+                        <rect x="20" y="45" width="60" height="10" fill="red" />
+                    </svg>
+                    <p>Do not enter this road or area from this direction.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">No Parking</h5>
+                </div>
+                <div class="card-body text-center">
+                    <svg class="traffic-sign mb-3" width="100" height="100" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="#3498DB" />
+                        <text x="50" y="40" font-size="32" text-anchor="middle" fill="white">P</text>
+                        <line x1="15" y1="85" x2="85" y2="15" stroke="red" stroke-width="8" />
+                    </svg>
+                    <p>Parking is not allowed in this area.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Pedestrian Crossing</h5>
+                </div>
+                <div class="card-body text-center">
+                    <svg class="traffic-sign mb-3" width="100" height="100" viewBox="0 0 100 100">
+                        <rect x="5" y="5" width="90" height="90" rx="5" fill="#FFCC00" />
+                        <path d="M40,30 L40,70 M60,30 L60,70" stroke="black" stroke-width="5" />
+                        <path d="M25,50 L75,50" stroke="black" stroke-width="5" />
+                    </svg>
+                    <p>Watch for pedestrians crossing the road at this location.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Traffic Rules -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">Key Traffic Rules</h3>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div>
+                                        <h5>Always wear seatbelts</h5>
+                                        <p>Driver and all passengers must wear seatbelts at all times.</p>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div>
+                                        <h5>Follow speed limits</h5>
+                                        <p>Adhere to posted speed limits to ensure safety of all road users.</p>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div>
+                                        <h5>No drunk driving</h5>
+                                        <p>Never drive under the influence of alcohol or drugs.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div>
+                                        <h5>No mobile phones while driving</h5>
+                                        <p>Using mobile phones while driving is prohibited.</p>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div>
+                                        <h5>Yield to emergency vehicles</h5>
+                                        <p>Always give way to ambulances, fire engines, and police vehicles.</p>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div>
+                                        <h5>Use indicators for turns</h5>
+                                        <p>Always signal your intention to turn using indicators.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fine Information -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">Traffic Violation Fines</h3>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Violation</th>
+                            <th>Description</th>
+                            <th>Fine Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Speeding</td>
+                            <td>Exceeding speed limit by 10-20 km/h</td>
+                            <td>₹1,000</td>
+                        </tr>
+                        <tr>
+                            <td>Red Light Jumping</td>
+                            <td>Crossing intersection when signal is red</td>
+                            <td>₹1,000</td>
+                        </tr>
+                        <tr>
+                            <td>No Parking</td>
+                            <td>Parking in prohibited zones</td>
+                            <td>₹500</td>
+                        </tr>
+                        <tr>
+                            <td>Drunk Driving</td>
+                            <td>Driving under influence of alcohol</td>
+                            <td>₹10,000</td>
+                        </tr>
+                        <tr>
+                            <td>No Helmet</td>
+                            <td>Riding two-wheeler without helmet</td>
+                            <td>₹1,000</td>
+                        </tr>
+                        <tr>
+                            <td>Using Mobile Phone</td>
+                            <td>Using phone while driving</td>
+                            <td>₹1,500</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- About Our System -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">About Our Vehicle Management System</h3>
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4>Features of Our System</h4>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <i class="fas fa-camera me-2 text-primary"></i> OCR-based number plate recognition
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-map-marker-alt me-2 text-primary"></i> Automatic state detection
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-file-invoice-dollar me-2 text-primary"></i> Digital fine management
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-history me-2 text-primary"></i> Fine payment history tracking
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-user-shield me-2 text-primary"></i> Secure user and employee access
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-car-crash" style="font-size: 8rem; color: var(--bs-primary);"></i>
+                            </div>
+                            <p class="lead text-center">Our advanced system uses artificial intelligence to automatically recognize vehicle number plates and manage traffic fines efficiently.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

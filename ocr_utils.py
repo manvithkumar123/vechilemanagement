@@ -203,43 +203,13 @@ def process_image(image_path):
                 logging.info(f"Google Vision detected plate: {plate_number}")
                 return plate_number
         
-        # If Google Vision fails, fall back to deterministic image hashing approach
-        logging.warning("Google Vision couldn't detect a valid plate, using fallback method")
-        
-        # Define state codes
-        state_codes = ['AP', 'TS', 'TN', 'KA', 'MH', 'DL']
-        
-        # Open the image
-        img = Image.open(image_path)
-        
-        # Resize image to standard size for consistent processing
-        img = img.resize((300, 200))
-        
-        # Convert to grayscale
-        img = ImageOps.grayscale(img)
-        
-        # Extract image statistics to create a unique "fingerprint" for the image
-        stat = img.histogram()
-        
-        # Create a deterministic "hash" from the image data
-        img_hash = sum([i * stat[i] for i in range(len(stat))]) % 100000
-        
-        # Use the "hash" to seed a random generator for consistent results
-        random.seed(img_hash)
-        
-        # Generate plate components
-        state = random.choice(state_codes)
-        number1 = random.randint(1, 99)
-        letters = ''.join(random.choices('ABCDEFGHJKLMNPQRSTUVWXYZ', k=2))
-        number2 = random.randint(1000, 9999)
-        
-        # Format the plate number
-        plate_number = f"{state}{number1:02d}{letters}{number2}"
-        
-        logging.info(f"Generated plate based on image: {plate_number}")
-        return plate_number
+        # If Google Vision fails, don't use fallback, just return None
+        # This allows the frontend to display an editable default
+        # that the user will need to correct manually
+        logging.warning("Google Vision couldn't detect a valid plate, returning None")
+        return None
         
     except Exception as e:
         logging.error(f"Error in image processing: {str(e)}")
-        # Return a default if there's an error
-        return "TS01AB1234"
+        # Return None to let the frontend display a default
+        return None

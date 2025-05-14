@@ -181,6 +181,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 detectedPlate.textContent = data.plate_number;
                 detectedState.textContent = data.state;
                 
+                // Make plate number editable
+                detectedPlate.setAttribute('contenteditable', 'true');
+                detectedPlate.style.border = '1px dashed #ccc';
+                detectedPlate.style.padding = '5px 10px';
+                detectedPlate.style.borderRadius = '4px';
+                
+                // Add a hint about editability
+                if (!document.getElementById('edit-hint')) {
+                    const hintElement = document.createElement('small');
+                    hintElement.id = 'edit-hint';
+                    hintElement.className = 'text-muted d-block mt-1';
+                    hintElement.innerHTML = '<i class="fas fa-pencil-alt me-1"></i>Click to edit if needed';
+                    detectedPlate.parentNode.appendChild(hintElement);
+                }
+                
+                // Add event listener to update state on plate number edit
+                detectedPlate.addEventListener('input', function() {
+                    // Extract state code (first 2 letters)
+                    const plateText = detectedPlate.textContent.trim().toUpperCase();
+                    if (plateText.length >= 2) {
+                        const stateCode = plateText.substring(0, 2);
+                        
+                        // Make a simple fetch to get the state name
+                        fetch('/process_image', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                image_data: capturedImage,
+                                manual_plate: plateText
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(stateData => {
+                            if (stateData.success) {
+                                detectedState.textContent = stateData.state;
+                            }
+                        });
+                    }
+                });
+                
                 // Add state-based class to state display
                 detectedState.className = '';
                 if (data.state === 'Telangana') {

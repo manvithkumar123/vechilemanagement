@@ -162,6 +162,20 @@ def process_image_route():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
     try:
+        # Check if we have a manually entered plate number
+        manual_plate = None
+        if request.json and 'manual_plate' in request.json:
+            manual_plate = request.json['manual_plate']
+        
+        if manual_plate:
+            # Just detect state from the manually entered plate
+            state = detect_state_from_plate(manual_plate)
+            return jsonify({
+                'success': True, 
+                'plate_number': manual_plate,
+                'state': state
+            })
+            
         # Get the image data from the request
         image_data = request.json['image_data'] if request.json and 'image_data' in request.json else ''
         
@@ -180,11 +194,12 @@ def process_image_route():
             temp_file.write(image_bytes)
             temp_file_path = temp_file.name
         
-        # Process the image with OCR
-        plate_number = process_image(temp_file_path)
-        
-        # Remove temporary file
-        os.unlink(temp_file_path)
+        try:
+            # Process the image with OCR
+            plate_number = process_image(temp_file_path)
+        finally:
+            # Always remove temporary file
+            os.unlink(temp_file_path)
         
         if plate_number:
             # Clean up plate number - remove any non-alphanumeric characters
@@ -199,7 +214,13 @@ def process_image_route():
                 'state': state
             })
         else:
-            return jsonify({'success': False, 'error': 'No plate number detected'}), 400
+            # If OCR failed, return a default value that the user can edit
+            return jsonify({
+                'success': True,
+                'plate_number': 'KA01XX1234',
+                'state': 'Karnataka',
+                'ocr_failed': True
+            })
         
     except Exception as e:
         logging.error(f"Error processing image: {str(e)}")

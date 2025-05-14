@@ -780,7 +780,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pytesseract"
+name = "pytesseract" 
 version = "0.3.13"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [

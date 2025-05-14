@@ -7,6 +7,10 @@ import io
 import subprocess
 import tempfile
 from PIL import Image, ImageOps, ImageEnhance, ImageFilter
+import pytesseract
+
+# Explicitly set the Tesseract binary path
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)

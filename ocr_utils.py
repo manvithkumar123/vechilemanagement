@@ -4,14 +4,12 @@ import re
 import os
 import base64
 import io
+import subprocess
+import tempfile
 from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 
-# Google Cloud Vision imports
-from google.cloud import vision
-from google.oauth2.service_account import Credentials
-from google.cloud.vision_v1 import types
-import google.auth
-import json
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
 
 def clean_plate_text(text):
     """
@@ -57,91 +55,125 @@ def clean_plate_text(text):
     
     return None
 
-def detect_text_with_google_vision(image_path):
+def enhance_image_for_ocr(image_path):
     """
-    Use Google Cloud Vision API to detect text in an image
+    Enhance the image to improve OCR accuracy
     
     Args:
         image_path: Path to the image file
         
     Returns:
-        list: Detected text annotations
+        str: Path to the enhanced image
     """
     try:
-        # Initialize Google Cloud Vision client
-        # Using API key authentication
-        api_key = os.environ.get("GOOGLE_VISION_API_KEY")
-        if not api_key:
-            logging.error("Google Vision API key not found in environment variables")
-            return None
+        # Open the image
+        img = Image.open(image_path)
         
-        # Read the image file
-        with open(image_path, 'rb') as image_file:
-            content = image_file.read()
+        # Resize if needed
+        if img.width > 1000 or img.height > 1000:
+            img.thumbnail((1000, 1000), Image.Resampling.LANCZOS)
         
-        # Prepare the image for the API request
-        image = {'content': content}
+        # Convert to grayscale
+        img = img.convert('L')
         
-        # API endpoint directly (not using client library for API key auth)
-        import requests
-        url = f"https://vision.googleapis.com/v1/images:annotate?key={api_key}"
-        payload = {
-            "requests": [
-                {
-                    "image": {
-                        "content": base64.b64encode(content).decode('utf-8')
-                    },
-                    "features": [
-                        {
-                            "type": "TEXT_DETECTION"
-                        }
-                    ]
-                }
-            ]
-        }
+        # Increase contrast
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(2.0)
         
-        # Make the API request
-        response = requests.post(url, json=payload)
+        # Apply sharpening
+        img = img.filter(ImageFilter.SHARPEN)
         
-        if response.status_code != 200:
-            logging.error(f"Google Vision API error: {response.text}")
-            return None
-            
-        result = response.json()
+        # Apply thresholding to make it black and white
+        threshold = 150  
+        # We need to use a different approach for thresholding that doesn't involve comparison
+        lut = [0] * threshold + [255] * (256 - threshold)
+        img = img.point(lut)
         
-        # Extract the text annotations
-        if 'responses' in result and len(result['responses']) > 0:
-            if 'textAnnotations' in result['responses'][0]:
-                annotations = result['responses'][0]['textAnnotations']
-                if annotations:
-                    # First annotation is the entire text, subsequent ones are per word
-                    detected_texts = [annotation['description'] for annotation in annotations]
-                    return detected_texts
+        # Save to a temporary file
+        enhanced_path = tempfile.mktemp(suffix='.png')
+        img.save(enhanced_path)
         
-        logging.warning("No text annotations found in image")
-        return None
-        
+        return enhanced_path
+    
     except Exception as e:
-        logging.error(f"Error using Google Vision API: {str(e)}")
-        return None
+        logging.error(f"Error enhancing image: {str(e)}")
+        return image_path
 
-def analyze_image_for_plate(image_path):
+def detect_text_with_tesseract(image_path):
     """
-    Analyze the image using Google Vision API to find license plate
+    Use Tesseract OCR to detect text in an image
     
     Args:
         image_path: Path to the image file
+        
+    Returns:
+        str: Detected text
+    """
+    try:
+        # Enhance the image for better OCR results
+        enhanced_image_path = enhance_image_for_ocr(image_path)
+        
+        # Run tesseract directly using subprocess
+        # Configuring for license plate recognition:
+        # --psm 7: Treat the image as a single line of text
+        # --oem 1: Use LSTM OCR Engine
+        cmd = [
+            'tesseract',
+            enhanced_image_path,
+            'stdout',
+            '--psm', '7',
+            '-l', 'eng',
+            '-c', 'tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+        ]
+        
+        # Run the command
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        # Clean up the enhanced image if it's different from the original
+        if enhanced_image_path != image_path:
+            os.unlink(enhanced_image_path)
+        
+        # Check for errors
+        if result.returncode != 0:
+            logging.error(f"Tesseract error: {result.stderr}")
+            
+            # Try with a different PSM mode if the first one failed
+            cmd = [
+                'tesseract',
+                image_path,
+                'stdout',
+                '--psm', '6',  # Assume a single uniform block of text
+                '-l', 'eng'
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                return None
+        
+        # Get the detected text
+        text = result.stdout.strip()
+        
+        return text
+        
+    except Exception as e:
+        logging.error(f"Error using Tesseract OCR: {str(e)}")
+        return None
+
+def extract_plate_from_text(text):
+    """
+    Extract license plate numbers from detected text
+    
+    Args:
+        text: Raw text from OCR
         
     Returns:
         str: Most likely license plate number or None
     """
-    # Get all text detected in the image
-    detected_texts = detect_text_with_google_vision(image_path)
-    
-    if not detected_texts:
+    if not text:
         return None
     
-    # Regular expression patterns for Indian license plates
+    # Regular expression patterns for license plates
     # Format: XX-00-XX-0000 or XX-00-X-0000 (with or without hyphens)
     patterns = [
         r'[A-Z]{2}\s*[0-9]{1,2}\s*[A-Z]{1,3}\s*[0-9]{1,4}',  # XX 00 XX 0000
@@ -149,67 +181,114 @@ def analyze_image_for_plate(image_path):
         r'[A-Z]{2}\s*[0-9]{4,}'                              # XX 0000... (simplified)
     ]
     
-    potential_plates = []
+    # Check each pattern
+    for pattern in patterns:
+        matches = re.findall(pattern, text.upper())
+        if matches:
+            # Clean the first match
+            cleaned = re.sub(r'[^A-Z0-9]', '', matches[0])
+            if cleaned:
+                return cleaned
     
-    # Check each detected text against license plate patterns
-    for text in detected_texts:
-        text = text.upper().strip()
-        for pattern in patterns:
-            matches = re.findall(pattern, text)
-            potential_plates.extend(matches)
+    # If no valid plate pattern was found, try to extract any text that looks like it might be part of a plate
+    # Look for 2 consecutive letters followed by numbers
+    alphanum_pattern = r'[A-Z]{2,}[0-9]+'
+    matches = re.findall(alphanum_pattern, text.upper())
+    if matches:
+        return matches[0]
     
-    # Also check the entire first text (often contains the full image text)
-    if detected_texts:
-        full_text = detected_texts[0].upper().replace('\n', ' ')
-        for pattern in patterns:
-            matches = re.findall(pattern, full_text)
-            potential_plates.extend(matches)
-    
-    # Clean the detected plates to a standard format
-    cleaned_plates = []
-    for plate in potential_plates:
-        # Remove spaces and other non-alphanumeric characters
-        cleaned = re.sub(r'[^A-Z0-9]', '', plate)
-        if cleaned:
-            cleaned_plates.append(cleaned)
-    
-    # If we have potential plates, return the most likely one
-    if cleaned_plates:
-        # Use the first one for now - it's often the most complete
-        return cleaned_plates[0]
+    # As a last resort, return any alphanumeric sequence found
+    alphanum = re.sub(r'[^A-Z0-9]', '', text.upper())
+    if len(alphanum) >= 4:  # Only if it's long enough to be meaningful
+        return alphanum
     
     return None
 
-def process_image(image_path):
+def try_multiple_ocr_methods(image_path):
     """
-    Process an image to extract vehicle license plate using Google Vision API
+    Try multiple OCR methods to extract text from the image
     
     Args:
         image_path: Path to the image file
         
     Returns:
-        str: Detected license plate text or a fallback
+        str: Detected license plate text or None
+    """
+    # First try with Tesseract
+    try:
+        # Try different PSM modes and configurations
+        psm_modes = [7, 8, 6, 3]  # Different page segmentation modes
+        
+        for psm in psm_modes:
+            # Enhance the image for better OCR results
+            enhanced_image_path = enhance_image_for_ocr(image_path)
+            
+            cmd = [
+                'tesseract',
+                enhanced_image_path,
+                'stdout',
+                f'--psm', f'{psm}',
+                '-l', 'eng',
+                '-c', 'tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            # Clean up the enhanced image
+            if enhanced_image_path != image_path:
+                os.unlink(enhanced_image_path)
+            
+            if result.returncode == 0:
+                text = result.stdout.strip()
+                if text:
+                    # Extract plate from the text
+                    plate = extract_plate_from_text(text)
+                    if plate:
+                        logging.info(f"Tesseract detected plate with PSM {psm}: {plate}")
+                        return plate
+    
+    except Exception as e:
+        logging.error(f"Error with multiple OCR methods: {str(e)}")
+    
+    return None
+
+def process_image(image_path):
+    """
+    Process an image to extract vehicle license plate text
+    
+    Args:
+        image_path: Path to the image file
+        
+    Returns:
+        str: Detected license plate text or None
     """
     try:
         logging.info(f"Processing image from {image_path}")
         
-        # Try to detect the license plate using Google Vision
-        plate_number = analyze_image_for_plate(image_path)
+        # Try to detect the license plate using multiple OCR methods
+        plate_number = try_multiple_ocr_methods(image_path)
         
         if plate_number:
             # Clean up the plate number
             plate_number = clean_plate_text(plate_number)
             if plate_number:
-                logging.info(f"Google Vision detected plate: {plate_number}")
+                logging.info(f"OCR detected plate: {plate_number}")
                 return plate_number
         
-        # If Google Vision fails, don't use fallback, just return None
-        # This allows the frontend to display an editable default
-        # that the user will need to correct manually
-        logging.warning("Google Vision couldn't detect a valid plate, returning None")
+        # Get actual text directly from the image to display
+        # Even if it's not a perfect license plate format
+        raw_text = detect_text_with_tesseract(image_path)
+        if raw_text:
+            # Clean and filter to just alphanumerics
+            text = re.sub(r'[^A-Z0-9]', '', raw_text.upper())
+            if len(text) >= 4:  # If we have at least a few characters
+                logging.info(f"Using raw detected text: {text}")
+                return text
+        
+        # If all OCR attempts fail, return None to let the frontend display a default
+        logging.warning("All OCR methods failed, returning None")
         return None
         
     except Exception as e:
         logging.error(f"Error in image processing: {str(e)}")
-        # Return None to let the frontend display a default
         return None

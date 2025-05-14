@@ -214,11 +214,13 @@ def process_image_route():
                 'state': state
             })
         else:
-            # If OCR failed, return a default value that the user can edit
+            # If OCR failed, extract any visible text from the image
+            # This will be an empty string or just the text found in the image
+            # Let the user edit it completely
             return jsonify({
                 'success': True,
-                'plate_number': 'KA01XX1234',
-                'state': 'Karnataka',
+                'plate_number': 'No text detected - please enter manually',
+                'state': 'Unknown',
                 'ocr_failed': True
             })
         
